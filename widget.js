@@ -50,9 +50,21 @@ Com.Frog.Utils.require(
          * @event 'widget.live'
          */
         'widget.live': function(el, ev, data) {
-            this.element.html(
-                this.view('main.ejs')
+            var widget = this;
+
+            widget.element.html(
+                widget.view('main.ejs')
             );
+
+            var icon = widget.element.find('#folder-icon');
+            icon.attr('src', this.prefs.folder_icon.value);
+
+            var title = widget.element.find('#folder-title');
+            title.text(this.prefs.title.value);
+
+            var subtitle = widget.element.find('#folder-subtitle');
+            subtitle.text(this.prefs.subtitle.value);
+
         },
 
         /**
@@ -105,7 +117,18 @@ Com.Frog.Utils.require(
          *
          * @event 'widget.updated'
          */
-        'widget.updated': function(el, ev, data) {},
+        'widget.updated': function(el, ev, data) {
+            var widget = this;
+
+            var icon = widget.element.find('#folder-icon');
+            icon.attr('src', this.prefs.folder_icon.value);
+
+            var title = widget.element.find('#folder-title');
+            title.text(this.prefs.title.value);
+
+            var subtitle = widget.element.find('#folder-subtitle');
+            subtitle.text(this.prefs.subtitle.value);
+        },
 
 
         loadFiles: function() {

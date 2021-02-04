@@ -3,18 +3,41 @@
     margin: 0;
     border-radius: 5px;
 
+    * {
+        box-sizing: border-box;
+    }
+
     #folder-admin {
         width: 100%;
         padding: 3px;
         background-color: rgb(48, 48, 48);
+        margin-bottom: 5px;
     }
 
-    .edit & {
-        border: 1px solid #ccc;
-        border-radius: 6px;
+    #folder {
+        position: relative;
+        width: 100%;
+        padding: 5px;
+
+        #folder-icon {
+            max-width: 64px;
+            max-height: 64px;
+        }
+    
+        #folder-title {
+            width: calc(100% - 64px);
+            padding-left: 10px;
+            font-size: 18px;
+        }
+    
+        #folder-subtitle {
+            width: calc(100% - 64px);
+            padding-left: 10px;
+        }
     }
 
-    img {
-        margin-top: 10px;
+    #files {
+
     }
+    
 }
