@@ -1,0 +1,25 @@
+{
+    "widget": {
+        "id": "2E3636692001B28FC76F4F34DAC60A0730A2A13CF36A730A",
+        "name": "Frog-Folder",
+        "icon": "./assets/icon.png",
+        "category": ""
+    },
+    "author": {
+        "name": "Richard Stockholm",
+        "email": "r.stockholm@finhampark.co.uk",
+        "company": "Finham Park MAT",
+        "support": {
+            "github": "https://github.com/stockholmr/frog-folder",
+            "email": "r.stockholm@finhampark.co.uk",
+            "tel": ""
+        }
+    },
+    "version": {
+        "alias": "",
+        "number": "0.0.1"
+    },
+    "compatibility": {
+        "version": "180015"
+    }
+}

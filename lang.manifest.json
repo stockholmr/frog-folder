@@ -1,0 +1,13 @@
+{
+    "en-GB": {
+        "widget.title": "Folder Widget",
+        "widget.placeholder.text": "Looks like you have everything you need to get started!",
+        "widget.placeholder.title": "Hello World"
+    },
+
+    "ms": {
+        "widget.title": "Folder Widget",
+        "widget.placeholder.text": "Kelihatan seperti anda mempunyai segala-galanya yang anda perlukan untuk memulakan!",
+        "widget.placeholder.title": "helo dunia"
+    }
+}
