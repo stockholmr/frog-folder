@@ -36,8 +36,6 @@ Com.Frog.Utils.require(
 
         packageID: '2E3636692001B28FC76F4F34DAC60A0730A2A13CF36A730A',
 
-        baseUrl: null,
-        dataStoreUUID: null,
         files: {},
         fileListOpen: false,
 
@@ -53,12 +51,6 @@ Com.Frog.Utils.require(
          */
         init: function() {
             var widget = this;
-            
-            widget.baseURL = Frog.Utilities.getBaseUrl();
-            if(widget.options.siteType === 'preview') {
-                widget.baseURL = widget.baseURL + 
-                    '/app/staging/widget/2E3636692001B28FC76F4F34DAC60A0730A2A13CF36A730A';
-            }
         }, //end init()
 
         /**
@@ -135,7 +127,7 @@ Com.Frog.Utils.require(
          */
         'widget.updated': function(el, ev, data) {
             var widget = this;
-            
+
             widget.setIcon();
             widget.setTitles();
         }, //end widget.updated()
@@ -199,9 +191,7 @@ Com.Frog.Utils.require(
         setIcon: function() {
             var widget = this;
             var icon = widget.element.find('#folder-icon');
-            if(widget.prefs.folder_icon.value === undefined || widget.prefs.folder_icon.value === '') {
-                icon.attr('src', widget.baseURL+'/assets/folder.png');
-            } else {
+            if(widget.prefs.folder_icon.value !== undefined && widget.prefs.folder_icon.value !== '') {
                 icon.attr('src', widget.prefs.folder_icon.value);
             }
         }, // end setIcon()
