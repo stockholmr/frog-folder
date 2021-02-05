@@ -33,7 +33,12 @@ Com.Frog.Utils.require(
 
         baseUrl: null,
         dataStoreUUID: null,
-        files: [],
+        files: {},
+
+        iconClasses: {
+            'pdf': 'os-icon-ext-pdf small',
+            'jpg': 'os-icon-ext-jpg small',
+        },
 
         /**
          * Constructor. Runs when the widget is first loaded.
@@ -42,8 +47,7 @@ Com.Frog.Utils.require(
          */
         init: function() {
             var widget = this;
-            widget.loadFiles();
-
+            
             widget.baseURL = Frog.Utilities.getBaseUrl();
             if(widget.options.siteType === 'preview') {
                 widget.baseURL = widget.baseURL + 
@@ -65,6 +69,10 @@ Com.Frog.Utils.require(
 
             widget.setIcon();
             widget.setTitles();
+
+            widget.loadFiles().then(function(){
+                widget.renderFiles();
+            }).catch(function(){ /* TODO add error handling here */ });
         }, // end widget.live()
 
         /**
@@ -95,20 +103,23 @@ Com.Frog.Utils.require(
                         "callback": function(result) {
                             if (result.files && result.files.length) {
                                 $.each(result.files, function(i, file) {
-                                    widget.files.push({
-                                        uuid: file.uuid,
+                                    widget.files[file.uuid] = {
                                         name: file.attachment.name,
                                         ext: file.attachment.file.mime.ext,
                                         url:file.external_url,
-                                        dadded:file.attachment.updated
-                                    });
+                                        datetime:file.attachment.updated
+                                    };
                                 });
-                                widget.saveFiles();
+                                widget.saveFiles().then(function(){
+                                    widget.renderFiles();
+                                }).catch(function(){ /* TODO add error handling here */ });
                             }
                         }
                     }
                 });
             });
+
+            
             
         }, // end widget.edit()
 
@@ -120,11 +131,50 @@ Com.Frog.Utils.require(
         'widget.updated': function(el, ev, data) {
             var widget = this;
 
-            widget.loadFiles();
+            console.log(widget.files);
+
+            widget.loadFiles().then(function(){
+                widget.renderFiles();
+            }).catch(function(){ /* TODO add error handling here */ });
 
             widget.setIcon();
             widget.setTitles();
         }, //end widget.updated()
+
+        renderFiles: function() {
+            var widget = this;
+            var fileListContainer = widget.element.find('#folder-filelist');
+            var fileList = $('<ul></ul>');
+
+            fileListContainer.empty();
+
+            $.each(widget.files, function(uuid, file) {
+                var fileListItem = $('<li></li>');
+                var fileListItemIcon = $('<div class="file-icon '+ widget.iconClasses[file.ext] +'"></div>');
+                var fileListItemLink = $('<a href="'+file.url+'">'+file.name+'</a>');
+                fileListItem.append(fileListItemIcon);
+                fileListItem.append(fileListItemLink);
+
+                if(widget.state === 'edit') {
+                    var fileListItemRemoveBtn = $('<div id="'+uuid+'" class="file-remove"><i class="ff-cross-mono"></i></div>');
+
+                    fileListItemRemoveBtn.on('click', function(ev) {
+                        var fileUUID = $(this).attr('id');
+                        delete widget.files[fileUUID]
+
+                        widget.saveFiles().then(function(){
+                            widget.renderFiles();
+                        }).catch(function(){ /* TODO add error handling here */ });
+                    });
+
+                    fileListItem.append(fileListItemRemoveBtn);
+                }
+                
+                fileList.append(fileListItem);
+            });
+            
+            fileListContainer.append(fileList);
+        }, // end renderFiles()
 
         setTitles: function() {
             var widget = this;
@@ -187,6 +237,8 @@ Com.Frog.Utils.require(
                         }
                     }).done(function(response) {
                         resolve();
+                    }).fail(function(){
+                        reject();
                     });
 
                     
@@ -206,6 +258,8 @@ Com.Frog.Utils.require(
                         }
                     }).done(function(response) {
                         resolve();
+                    }).fail(function(){
+                        reject();
                     });
 
                 }// endif

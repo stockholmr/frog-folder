@@ -48,8 +48,48 @@
         }
     }
 
-    #files {
+    #folder-filelist {
+        margin-top: 10px;
 
+        ul {
+
+            li {
+                display: flex;
+                list-style: none;
+                margin-bottom: 10px;
+
+                .file-icon {
+                    margin-right: 8px;
+                }
+
+                a {
+                    display: block;
+                    font-size: 16px;
+                    padding-top: 3px;
+                    width: 90%;
+                }
+
+                .file-remove {
+                    display: block;
+                    background-color: #000000;
+                    border-radius: 31px;
+                    width: 20px;
+                    height: 20px;
+                    cursor: pointer;
+                    margin-top: 4px;
+
+                    &:hover {
+                        background-color: #ce0a0a;
+                    }
+
+                    .ff-cross-mono {
+                        font-size: 20px;
+                        color: #fff;
+                    }
+                }
+            }
+        }
+        
     }
     
 }
