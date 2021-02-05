@@ -1,7 +1,7 @@
 [data-name="Widget.Folder"].widget-content {
     width: 100%;
     margin: 0;
-    border-radius: 5px;
+    cursor: pointer;
 
     * {
         box-sizing: border-box;
@@ -16,23 +16,35 @@
 
     #folder {
         position: relative;
+        display: flex;
         width: 100%;
         padding: 5px;
+        justify-content: space-between;
+        
 
         #folder-icon {
             max-width: 64px;
             max-height: 64px;
         }
-    
-        #folder-title {
-            width: calc(100% - 64px);
+        
+        #folder-text {
             padding-left: 10px;
-            font-size: 18px;
+            width: 100%;
+
+            #folder-title {
+                width: 100%;
+                font-size: 18px;
+            }
+        
+            #folder-subtitle {
+                width: 100%;
+            }
         }
-    
-        #folder-subtitle {
-            width: calc(100% - 64px);
-            padding-left: 10px;
+
+        #folder-buttons {
+            button {
+                width: 74px;
+            }
         }
     }
 

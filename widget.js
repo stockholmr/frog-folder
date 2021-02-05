@@ -9,13 +9,13 @@ Com.Frog.Utils.require(
             title: {
                "type": "text",
                "label": "Folder Title",
-               "defaultValue": "",
+               "defaultValue": "Folder Title",
                "placeholder": "Type your folder title here"
             },
             subtitle: {
                "type": "text",
                "label": "Folder Subtitle",
-               "defaultValue": "",
+               "defaultValue": "subtitle",
                "placeholder": "Type your folder subtitle here"
             },
             folder_icon: {
@@ -31,6 +31,7 @@ Com.Frog.Utils.require(
 
         packageID: '2E3636692001B28FC76F4F34DAC60A0730A2A13CF36A730A',
 
+        baseUrl: null,
         dataStoreUUID: null,
         files: [],
 
@@ -41,8 +42,14 @@ Com.Frog.Utils.require(
          */
         init: function() {
             var widget = this;
-            widget.loadFiles(); 
-        },
+            widget.loadFiles();
+
+            widget.baseURL = Frog.Utilities.getBaseUrl();
+            if(widget.options.siteType === 'preview') {
+                widget.baseURL = widget.baseURL + 
+                    '/app/staging/widget/2E3636692001B28FC76F4F34DAC60A0730A2A13CF36A730A';
+            }
+        }, //end init()
 
         /**
          * Event fired by the Site Controller.
@@ -56,16 +63,9 @@ Com.Frog.Utils.require(
                 widget.view('main.ejs')
             );
 
-            var icon = widget.element.find('#folder-icon');
-            icon.attr('src', this.prefs.folder_icon.value);
-
-            var title = widget.element.find('#folder-title');
-            title.text(this.prefs.title.value);
-
-            var subtitle = widget.element.find('#folder-subtitle');
-            subtitle.text(this.prefs.subtitle.value);
-
-        },
+            widget.setIcon();
+            widget.setTitles();
+        }, // end widget.live()
 
         /**
          * Event fired by the Site Controller. Tells the widget that the site is in Edit Mode.
@@ -79,11 +79,13 @@ Com.Frog.Utils.require(
                 widget.view('./widget.ejs')
             );
 
-            var addFileButton = $('<button class="primary">Add File</button>');
-            var toolbar = widget.element.find('#folder-admin');
+            widget.setIcon();
+            widget.setTitles();
+
+            var addFileButton = $('<button class="btn btn-primary">Add File</button>');
+            var toolbar = widget.element.find('#folder-buttons');
             toolbar.append(addFileButton);
 
-            
             addFileButton.on('click', function(ev) {
                 $('.os_core:first').trigger('os.app.upload', {
                     "data": {
@@ -108,9 +110,7 @@ Com.Frog.Utils.require(
                 });
             });
             
-            
-
-        },
+        }, // end widget.edit()
 
         /**
          * Event fired by the Site Controller. Tells the widget that something has been changed during editing.
@@ -120,49 +120,99 @@ Com.Frog.Utils.require(
         'widget.updated': function(el, ev, data) {
             var widget = this;
 
-            var icon = widget.element.find('#folder-icon');
-            icon.attr('src', this.prefs.folder_icon.value);
+            widget.loadFiles();
 
+            widget.setIcon();
+            widget.setTitles();
+        }, //end widget.updated()
+
+        setTitles: function() {
+            var widget = this;
             var title = widget.element.find('#folder-title');
-            title.text(this.prefs.title.value);
-
+            title.text(widget.prefs.title.value);
             var subtitle = widget.element.find('#folder-subtitle');
-            subtitle.text(this.prefs.subtitle.value);
-        },
+            subtitle.text(widget.prefs.subtitle.value);
+        }, // end setTitles()
 
+        setIcon: function() {
+            var widget = this;
+            var icon = widget.element.find('#folder-icon');
+            if(widget.prefs.folder_icon.value === undefined || widget.prefs.folder_icon.value === '') {
+                icon.attr('src', widget.baseURL+'/assets/folder.png');
+            } else {
+                icon.attr('src', widget.prefs.folder_icon.value);
+            }
+        }, // end setIcon()
 
         loadFiles: function() {
             var widget = this;
-            FrogOS.fdp({
-                url: 'datastore/get',
-                type: 'GET',
-                path: '/api/fdp/2/',
-                data: {
-                    target_uuid: widget.options.content_uuid,
-                    alias: 'files'
-                }
-            }).done(function(response) {
-                console.log(response);
-                if(response.status === 'ok' && response.response.length) {
-                    widget.files = response.response;
-                }
-            });
-        },
+
+            return new Promise(function(resolve, reject) {
+                FrogOS.fdp({
+                    url: 'datastore/get',
+                    type: 'GET',
+                    path: '/api/fdp/2/',
+                    data: {
+                        target_uuid: widget.options.content_uuid,
+                        user_uuid: widget.options.user.uuid,
+                        alias: 'files'
+                    }
+                }).done(function(response) {
+                    if(response.status === 'ok' && response.response.length === 1) {
+                        widget.files = JSON.parse(response.response[0].data);
+                        widget.dataStoreUUID = response.response[0].uuid;
+                        resolve();
+                    }
+                    reject();
+                });
+            }); // end promise()
+        }, // end loadFiles()
 
         saveFiles: function() {
             var widget = this;
-            FrogOS.fdp({
-                url: 'datastore/create',
-                type: 'POST',
-                path: '/api/fdp/2/',
-                data: {
-                    target_uuid: widget.options.content_uuid,
-                    data: widget.files,
-                    alias: 'files',
-                }
-            }).done(function(response) {
-                console.log(response);
-            });
-        },
+
+            return new Promise(function(resolve, reject) {
+                if(widget.dataStoreUUID === null) {
+                    // Create the datastore.
+
+                    FrogOS.fdp({
+                        url: 'datastore/create',
+                        type: 'POST',
+                        path: '/api/fdp/2/',
+                        data: {
+                            target_uuid: widget.options.content_uuid,
+                            user_uuid: widget.options.user.uuid,
+                            data: JSON.stringify(widget.files),
+                            alias: 'files',
+                        }
+                    }).done(function(response) {
+                        resolve();
+                    });
+
+                    
+                } else {
+                    // Update the data store
+
+                    FrogOS.fdp({
+                        url: 'datastore/update',
+                        type: 'POST',
+                        path: '/api/fdp/2/',
+                        data: {
+                            uuid: widget.dataStoreUUID,
+                            target_uuid: widget.options.content_uuid,
+                            user_uuid: widget.options.user.uuid,
+                            data: JSON.stringify(widget.files),
+                            alias: 'files',
+                        }
+                    }).done(function(response) {
+                        resolve();
+                    });
+
+                }// endif
+
+            }); // end promise()
+            
+        }, // end saveFiles()
+
     });
 });
