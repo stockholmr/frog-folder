@@ -26,7 +26,12 @@ Com.Frog.Utils.require(
                 filter: ['image'],
                 view: 'mini',
                 sources: ['native']
-            }
+            },
+            files: {
+                type: 'textarea',
+                label: "Data Store",
+                defaultValue: "{}"
+            },
         },
 
         packageID: '2E3636692001B28FC76F4F34DAC60A0730A2A13CF36A730A',
@@ -34,6 +39,7 @@ Com.Frog.Utils.require(
         baseUrl: null,
         dataStoreUUID: null,
         files: {},
+        fileListOpen: false,
 
         iconClasses: {
             'pdf': 'os-icon-ext-pdf small',
@@ -69,10 +75,8 @@ Com.Frog.Utils.require(
 
             widget.setIcon();
             widget.setTitles();
-
-            widget.loadFiles().then(function(){
-                widget.renderFiles();
-            }).catch(function(){ /* TODO add error handling here */ });
+            widget.loadFiles()
+            widget.renderFiles();
         }, // end widget.live()
 
         /**
@@ -89,6 +93,8 @@ Com.Frog.Utils.require(
 
             widget.setIcon();
             widget.setTitles();
+            widget.loadFiles()
+            widget.renderFiles();
 
             var addFileButton = $('<button class="btn btn-primary">Add File</button>');
             var toolbar = widget.element.find('#folder-buttons');
@@ -110,9 +116,8 @@ Com.Frog.Utils.require(
                                         datetime:file.attachment.updated
                                     };
                                 });
-                                widget.saveFiles().then(function(){
-                                    widget.renderFiles();
-                                }).catch(function(){ /* TODO add error handling here */ });
+                                widget.saveFiles()
+                                widget.renderFiles();
                             }
                         }
                     }
@@ -130,16 +135,24 @@ Com.Frog.Utils.require(
          */
         'widget.updated': function(el, ev, data) {
             var widget = this;
-
-            console.log(widget.files);
-
-            widget.loadFiles().then(function(){
-                widget.renderFiles();
-            }).catch(function(){ /* TODO add error handling here */ });
-
+            
             widget.setIcon();
             widget.setTitles();
         }, //end widget.updated()
+
+        '#folder {click}': function() {
+            var widget = this;
+            var fileListContainer = widget.element.find('#folder-filelist');
+
+            if(widget.fileListOpen) {
+                fileListContainer.slideUp("slow");
+                widget.fileListOpen = false;
+            } else {
+                fileListContainer.slideDown("slow");
+                widget.fileListOpen = true;
+            }
+            
+        },
 
         renderFiles: function() {
             var widget = this;
@@ -162,9 +175,8 @@ Com.Frog.Utils.require(
                         var fileUUID = $(this).attr('id');
                         delete widget.files[fileUUID]
 
-                        widget.saveFiles().then(function(){
-                            widget.renderFiles();
-                        }).catch(function(){ /* TODO add error handling here */ });
+                        widget.saveFiles()
+                        widget.renderFiles();
                     });
 
                     fileListItem.append(fileListItemRemoveBtn);
@@ -196,76 +208,17 @@ Com.Frog.Utils.require(
 
         loadFiles: function() {
             var widget = this;
-
-            return new Promise(function(resolve, reject) {
-                FrogOS.fdp({
-                    url: 'datastore/get',
-                    type: 'GET',
-                    path: '/api/fdp/2/',
-                    data: {
-                        target_uuid: widget.options.content_uuid,
-                        user_uuid: widget.options.user.uuid,
-                        alias: 'files'
-                    }
-                }).done(function(response) {
-                    if(response.status === 'ok' && response.response.length === 1) {
-                        widget.files = JSON.parse(response.response[0].data);
-                        widget.dataStoreUUID = response.response[0].uuid;
-                        resolve();
-                    }
-                    reject();
-                });
-            }); // end promise()
+            widget.files = JSON.parse(widget.prefs.files.value);
         }, // end loadFiles()
 
         saveFiles: function() {
             var widget = this;
 
-            return new Promise(function(resolve, reject) {
-                if(widget.dataStoreUUID === null) {
-                    // Create the datastore.
+            widget.prefs.files.value = JSON.stringify(widget.files);
+            var editor_panel = widget.element.closest('.sites_core').find('ol.sites-editor-prefs-list:eq(1)');
+            var files_pref = editor_panel.find("textarea[name='files']");
+            files_pref.val(JSON.stringify(widget.files))
 
-                    FrogOS.fdp({
-                        url: 'datastore/create',
-                        type: 'POST',
-                        path: '/api/fdp/2/',
-                        data: {
-                            target_uuid: widget.options.content_uuid,
-                            user_uuid: widget.options.user.uuid,
-                            data: JSON.stringify(widget.files),
-                            alias: 'files',
-                        }
-                    }).done(function(response) {
-                        resolve();
-                    }).fail(function(){
-                        reject();
-                    });
-
-                    
-                } else {
-                    // Update the data store
-
-                    FrogOS.fdp({
-                        url: 'datastore/update',
-                        type: 'POST',
-                        path: '/api/fdp/2/',
-                        data: {
-                            uuid: widget.dataStoreUUID,
-                            target_uuid: widget.options.content_uuid,
-                            user_uuid: widget.options.user.uuid,
-                            data: JSON.stringify(widget.files),
-                            alias: 'files',
-                        }
-                    }).done(function(response) {
-                        resolve();
-                    }).fail(function(){
-                        reject();
-                    });
-
-                }// endif
-
-            }); // end promise()
-            
         }, // end saveFiles()
 
     });
