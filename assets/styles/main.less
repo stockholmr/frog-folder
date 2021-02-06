@@ -1,12 +1,30 @@
+.widget_folder {
+    border-radius: 5px;
+    border: 1px solid #cecece;
+    background-color: #fff;
+}
+
 [data-name="Widget.Folder"].widget-content {
     width: 100%;
     margin: 0;
     cursor: pointer;
-    border-radius: 5px;
-    background-color: #fff;
 
     * {
         box-sizing: border-box;
+    }
+
+    .icon-save {
+        background-image: url(https://finhammat-coventry.frogos.net/app/dist/public/icon/UI/icons.png?v=2010_0_20);
+        background-position: -162px -163px;
+        height: 22px;
+        width: 22px;
+    }
+
+    .icon-remove {
+        background-image: url(https://finhammat-coventry.frogos.net/app/dist/public/icon/UI/icons.png?v=2010_0_20);
+        background-position: -162px -190px;
+        height: 22px;
+        width: 22px;
     }
 
     #folder-admin {
@@ -69,26 +87,17 @@
                     display: block;
                     font-size: 16px;
                     padding-top: 3px;
-                    width: 70%;
                 }
 
-                .file-remove {
-                    display: block;
-                    background-color: #000000;
-                    border-radius: 31px;
-                    width: 20px;
-                    height: 20px;
-                    cursor: pointer;
+                input {
                     margin-top: 4px;
+                    margin-right: 5px;
+                    color: #000000;
+                }
 
-                    &:hover {
-                        background-color: #ce0a0a;
-                    }
-
-                    .ff-cross-mono {
-                        font-size: 20px;
-                        color: #fff;
-                    }
+                .action {
+                    margin-top: 4px;
+                    margin-right: 5px;
                 }
             }
         }

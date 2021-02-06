@@ -36,13 +36,24 @@ Com.Frog.Utils.require(
 
         packageID: '2E3636692001B28FC76F4F34DAC60A0730A2A13CF36A730A',
 
+
+
+
+        /**
+         * @var {Object} files memory based data store this will be persisted to the data store on save.
+         */
         files: {},
+
+
+
+
+        /**
+         * @var {boolean} fileListOpen indicates the status of the file list
+         */
         fileListOpen: false,
 
-        iconClasses: {
-            'pdf': 'os-icon-ext-pdf small',
-            'jpg': 'os-icon-ext-jpg small',
-        },
+
+
 
         /**
          * Constructor. Runs when the widget is first loaded.
@@ -50,13 +61,16 @@ Com.Frog.Utils.require(
          * @method init
          */
         init: function() {
-            var widget = this;
         }, //end init()
+
+
+
 
         /**
          * Event fired by the Site Controller.
          *
          * @event 'widget.live'
+         * @return {void}
          */
         'widget.live': function(el, ev, data) {
             var widget = this;
@@ -71,10 +85,15 @@ Com.Frog.Utils.require(
             widget.renderFiles();
         }, // end widget.live()
 
+
+
+
         /**
-         * Event fired by the Site Controller. Tells the widget that the site is in Edit Mode.
+         * Event fired by the Site Controller.
+         * Tells the widget that the site is in Edit Mode.
          *
          * @event 'widget.edit'
+         * @return {void}
          */
         'widget.edit': function(el, ev, data) {
             var widget = this;
@@ -115,15 +134,17 @@ Com.Frog.Utils.require(
                     }
                 });
             });
-
-            
-            
         }, // end widget.edit()
 
+
+
+
         /**
-         * Event fired by the Site Controller. Tells the widget that something has been changed during editing.
+         * Event fired by the Site Controller. 
+         * Tells the widget that something has been changed during editing.
          *
          * @event 'widget.updated'
+         * @return {void}
          */
         'widget.updated': function(el, ev, data) {
             var widget = this;
@@ -132,7 +153,34 @@ Com.Frog.Utils.require(
             widget.setTitles();
         }, //end widget.updated()
 
-        '#folder {click}': function() {
+
+
+        /**
+         * slide up/down the file list when the icon is clicked.
+         * 
+         * @return {void}
+         */
+        '#folder-icon {click}': function() {
+            var widget = this;
+            var fileListContainer = widget.element.find('#folder-filelist');
+
+            if(widget.fileListOpen) {
+                fileListContainer.slideUp("slow");
+                widget.fileListOpen = false;
+            } else {
+                fileListContainer.slideDown("slow");
+                widget.fileListOpen = true;
+            }    
+        }, // end folder-icon.click()
+
+
+
+        /**
+         * slide up/down the file list when the title is clicked.
+         * 
+         * @return {void}
+         */
+        '#folder-title {click}': function() {
             var widget = this;
             var fileListContainer = widget.element.find('#folder-filelist');
 
@@ -144,8 +192,15 @@ Com.Frog.Utils.require(
                 widget.fileListOpen = true;
             }
             
-        },
+        }, // end folder-title.click()
 
+
+
+        /**
+         * renders the file list.
+         * 
+         * @return {void}
+         */
         renderFiles: function() {
             var widget = this;
             var fileListContainer = widget.element.find('#folder-filelist');
@@ -154,32 +209,95 @@ Com.Frog.Utils.require(
             fileListContainer.empty();
 
             $.each(widget.files, function(uuid, file) {
+                var icon = widget.getFileIcon(file.ext, null);
+
                 var fileListItem = $('<li></li>');
-                var fileListItemIcon = $('<div class="file-icon '+ widget.iconClasses[file.ext] +'"></div>');
+                var fileListItemIcon = $('<div class="file-icon '+ icon +'"></div>');
                 var fileListItemLink = $('<a href="'+file.url+'">'+file.name+'</a>');
+                
+                if(widget.state === 'edit') {
+                    fileListItemLink = $('<input type="text" value="'+file.name+'" />')
+                }
+
                 fileListItem.append(fileListItemIcon);
                 fileListItem.append(fileListItemLink);
 
                 if(widget.state === 'edit') {
-                    var fileListItemRemoveBtn = $('<div id="'+uuid+'" class="file-remove"><i class="ff-cross-mono"></i></div>');
+                    var saveFileNameBtn = $('<div id="'+uuid+'" class="action icon-save" title="Save Filename"></div>');
+                    var fileListItemRemoveBtn = $('<div id="'+uuid+'" class="action icon-remove" title="Remove File"></div>');
+
+                    saveFileNameBtn.on('click', function(ev){
+                        var fileUUID = $(this).attr('id');
+                        widget.files[fileUUID].name = fileListItemLink.val();
+
+                        widget.saveFiles();
+                    });
 
                     fileListItemRemoveBtn.on('click', function(ev) {
                         var fileUUID = $(this).attr('id');
-                        delete widget.files[fileUUID]
+                        delete widget.files[fileUUID];
 
-                        widget.saveFiles()
+                        // remove all events from file action button.
+                        saveFileNameBtn.off();
+                        fileListItemRemoveBtn.off();
+
+                        widget.saveFiles();
                         widget.renderFiles();
                     });
 
+                    fileListItem.append(saveFileNameBtn);
                     fileListItem.append(fileListItemRemoveBtn);
                 }
-                
+
                 fileList.append(fileListItem);
             });
             
             fileListContainer.append(fileList);
         }, // end renderFiles()
 
+
+
+
+        /**
+         * get built in icon class based on files extionsion.
+         * 
+         * @param {string} ext   File extension without a preceding fullstop.
+         * 
+         * @param {callback} err Error callback this can be used to set a default icon on error.
+         *                       Example: getFileIcon(obj, function(){return "error icon class"});
+         * 
+         * @return {string|null}
+         */
+        getFileIcon(ext, err) {
+            if(typeof ext !== 'string') {
+                return err('Expected Type of String');
+            }
+
+            switch(ext) {
+                case 'jpg':  return 'os-icon-ext-jpg small';
+                case 'png':  return 'os-icon-ext-png small';
+                case 'txt':  return 'os-icon-ext-txt small';
+                case 'mp4':  return 'os-icon-ext-video small';
+                case 'pdf':  return 'os-icon-ext-pdf small';
+                case 'zip':  return 'os-icon-ext-zip small';
+                case 'xls':
+                case 'xslx': return 'os-icon-ext-xls small';
+                case 'doc':
+                case 'docx': return 'os-icon-ext-doc small';
+                case 'ppt':
+                case 'pptx': return 'os-icon-ext-pptx small';
+                
+                default: return 'os-icon-ext small';
+            }
+        }, // end getMimeIcon()
+
+
+
+        /**
+         * set folder title 
+         * 
+         * @return {void}
+         */
         setTitles: function() {
             var widget = this;
             var title = widget.element.find('#folder-title');
@@ -188,6 +306,13 @@ Com.Frog.Utils.require(
             subtitle.text(widget.prefs.subtitle.value);
         }, // end setTitles()
 
+
+
+        /**
+         * set icon image
+         * 
+         * @return {void}
+         */
         setIcon: function() {
             var widget = this;
             var icon = widget.element.find('#folder-icon');
@@ -196,11 +321,25 @@ Com.Frog.Utils.require(
             }
         }, // end setIcon()
 
+
+
+        /**
+         * load the file data from the data store
+         * 
+         * @return {void}
+         */
         loadFiles: function() {
             var widget = this;
             widget.files = JSON.parse(widget.prefs.files.value);
         }, // end loadFiles()
 
+
+
+        /**
+         * save the file data to the data store
+         * 
+         * @return {void}
+         */
         saveFiles: function() {
             var widget = this;
 
@@ -208,8 +347,11 @@ Com.Frog.Utils.require(
             var editor_panel = widget.element.closest('.sites_core').find('ol.sites-editor-prefs-list:eq(1)');
             var files_pref = editor_panel.find("textarea[name='files']");
             files_pref.val(JSON.stringify(widget.files))
-
         }, // end saveFiles()
 
-    });
-});
+
+
+
+    }); // end Com.Frog.Controllers.Widget
+
+}); // end promise
