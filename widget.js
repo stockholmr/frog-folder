@@ -28,7 +28,7 @@ Com.Frog.Utils.require(
                 sources: ['native']
             },
             files: {
-                type: 'textarea',
+                type: 'hidden',
                 label: "Data Store",
                 defaultValue: "{}"
             },
@@ -345,7 +345,7 @@ Com.Frog.Utils.require(
 
             widget.prefs.files.value = JSON.stringify(widget.files);
             var editor_panel = widget.element.closest('.sites_core').find('ol.sites-editor-prefs-list:eq(1)');
-            var files_pref = editor_panel.find("textarea[name='files']");
+            var files_pref = editor_panel.find("input[name='files']");
             files_pref.val(JSON.stringify(widget.files))
         }, // end saveFiles()
 
