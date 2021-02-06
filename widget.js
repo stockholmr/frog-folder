@@ -9,13 +9,13 @@ Com.Frog.Utils.require(
             title: {
                "type": "text",
                "label": "Folder Title",
-               "defaultValue": "Folder Title",
+               "defaultValue": "Folder",
                "placeholder": "Type your folder title here"
             },
             subtitle: {
                "type": "text",
                "label": "Folder Subtitle",
-               "defaultValue": "subtitle",
+               "defaultValue": "",
                "placeholder": "Type your folder subtitle here"
             },
             folder_icon: {
