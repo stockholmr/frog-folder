@@ -352,7 +352,6 @@ Com.Frog.Utils.require(
             var editor_panel = widget.element.closest('.sites_core').find('ol.sites-editor-prefs-list:eq(1)');
             var files_pref = editor_panel.find("input[name='files']");
             files_pref.val(JSON.stringify(widget.files));
-            console.log(JSON.stringify(widget.files));
         }, // end saveFiles()
 
 
