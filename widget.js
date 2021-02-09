@@ -108,7 +108,7 @@ Com.Frog.Utils.require(
             widget.renderFiles();
 
             var addFileButton = $('<button class="btn btn-primary">Add File</button>');
-            var toolbar = widget.element.find('#folder-buttons');
+            var toolbar = widget.element.find('.folder-buttons');
             toolbar.append(addFileButton);
 
             addFileButton.on('click', function(ev) {
@@ -160,9 +160,9 @@ Com.Frog.Utils.require(
          * 
          * @return {void}
          */
-        '#folder-icon {click}': function() {
+        '.folder-icon {click}': function() {
             var widget = this;
-            var fileListContainer = widget.element.find('#folder-filelist');
+            var fileListContainer = widget.element.find('.folder-filelist');
 
             if(widget.fileListOpen) {
                 fileListContainer.slideUp("slow");
@@ -180,9 +180,9 @@ Com.Frog.Utils.require(
          * 
          * @return {void}
          */
-        '#folder-title {click}': function() {
+        '.folder-title {click}': function() {
             var widget = this;
-            var fileListContainer = widget.element.find('#folder-filelist');
+            var fileListContainer = widget.element.find('.folder-filelist');
 
             if(widget.fileListOpen) {
                 fileListContainer.slideUp("slow");
@@ -203,54 +203,59 @@ Com.Frog.Utils.require(
          */
         renderFiles: function() {
             var widget = this;
-            var fileListContainer = widget.element.find('#folder-filelist');
+            var fileListContainer = widget.element.find('.folder-filelist');
             var fileList = $('<ul></ul>');
 
             fileListContainer.empty();
 
             $.each(widget.files, function(uuid, file) {
-                var icon = widget.getFileIcon(file.ext, null);
+                if(widget.files.hasOwnProperty(uuid) && file !== undefined) {
+                    var icon = widget.getFileIcon(file.ext, null);
 
-                var fileListItem = $('<li></li>');
-                var fileListItemIcon = $('<div class="file-icon '+ icon +'"></div>');
-                var fileListItemLink = $('<a href="'+file.url+'">'+file.name+'</a>');
-                
-                if(widget.state === 'edit') {
-                    fileListItemLink = $('<input type="text" value="'+file.name+'" />')
-                }
+                    var fileListItem = $('<li></li>');
+                    var fileListItemIcon = $('<div class="file-icon '+ $.EJS.clean(icon) +'"></div>');
+                    var fileListItemLink = $('<a href="'+$.EJS.clean(file.url)+'">'+$.EJS.clean(file.name)+'</a>');
+                    
+                    if(widget.state === 'edit') {
+                        fileListItemLink = $('<input type="text" value="'+$.EJS.clean(file.name)+'" />')
+                    }
 
-                fileListItem.append(fileListItemIcon);
-                fileListItem.append(fileListItemLink);
+                    fileListItem.append(fileListItemIcon);
+                    fileListItem.append(fileListItemLink);
 
-                if(widget.state === 'edit') {
-                    var saveFileNameBtn = $('<div id="'+uuid+'" class="action icon-save" title="Save Filename"></div>');
-                    var fileListItemRemoveBtn = $('<div id="'+uuid+'" class="action icon-remove" title="Remove File"></div>');
+                    if(widget.state === 'edit') {
+                        var saveFileNameBtn = $('<div data-file-uuid="'+ $.EJS.clean(uuid) +'" class="action icon-save" title="Save Filename"></div>');
+                        var fileListItemRemoveBtn = $('<div data-file-uuid="'+ $.EJS.clean(uuid) +'" class="action icon-remove" title="Remove File"></div>');
 
-                    saveFileNameBtn.on('click', function(ev){
-                        var fileUUID = $(this).attr('id');
-                        widget.files[fileUUID].name = fileListItemLink.val();
+                        saveFileNameBtn.on('click', function(ev){
+                            var fileUUID = $(this).attr('data-file-uuid');
+                            widget.files[fileUUID].name = fileListItemLink.val();
 
-                        widget.saveFiles();
-                    });
+                            widget.saveFiles();
+                        });
 
-                    fileListItemRemoveBtn.on('click', function(ev) {
-                        var fileUUID = $(this).attr('id');
-                        delete widget.files[fileUUID];
+                        fileListItemRemoveBtn.on('click', function(ev) {
+                            var fileUUID = $(this).attr('data-file-uuid');
 
-                        // remove all events from file action button.
-                        saveFileNameBtn.off();
-                        fileListItemRemoveBtn.off();
+                            // remove file from data store
+                            widget.files[fileUUID] = undefined;
 
-                        widget.saveFiles();
-                        widget.renderFiles();
-                    });
+                            // remove all events from file action button.
+                            saveFileNameBtn.off();
+                            fileListItemRemoveBtn.off();
 
-                    fileListItem.append(saveFileNameBtn);
-                    fileListItem.append(fileListItemRemoveBtn);
-                }
+                            widget.saveFiles();
+                            widget.renderFiles();
+                        });
 
-                fileList.append(fileListItem);
-            });
+                        fileListItem.append(saveFileNameBtn);
+                        fileListItem.append(fileListItemRemoveBtn);
+                    }
+
+                    fileList.append(fileListItem);
+                } // end if
+
+            }); // end foreach
             
             fileListContainer.append(fileList);
         }, // end renderFiles()
@@ -300,9 +305,9 @@ Com.Frog.Utils.require(
          */
         setTitles: function() {
             var widget = this;
-            var title = widget.element.find('#folder-title');
+            var title = widget.element.find('.folder-title');
             title.text(widget.prefs.title.value);
-            var subtitle = widget.element.find('#folder-subtitle');
+            var subtitle = widget.element.find('.folder-subtitle');
             subtitle.text(widget.prefs.subtitle.value);
         }, // end setTitles()
 
@@ -315,7 +320,7 @@ Com.Frog.Utils.require(
          */
         setIcon: function() {
             var widget = this;
-            var icon = widget.element.find('#folder-icon');
+            var icon = widget.element.find('.folder-icon');
             if(widget.prefs.folder_icon.value !== undefined && widget.prefs.folder_icon.value !== '') {
                 icon.attr('src', widget.prefs.folder_icon.value);
             }
@@ -346,7 +351,8 @@ Com.Frog.Utils.require(
             widget.prefs.files.value = JSON.stringify(widget.files);
             var editor_panel = widget.element.closest('.sites_core').find('ol.sites-editor-prefs-list:eq(1)');
             var files_pref = editor_panel.find("input[name='files']");
-            files_pref.val(JSON.stringify(widget.files))
+            files_pref.val(JSON.stringify(widget.files));
+            console.log(JSON.stringify(widget.files));
         }, // end saveFiles()
 
 
